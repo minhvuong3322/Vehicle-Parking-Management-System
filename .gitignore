@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Temporary ignore for development ###
+src/main/java/com/parking/system/service/ParkingSlotService.java
+src/main/java/com/parking/system/service/ParkingZoneService.java
+src/main/java/com/parking/system/controller/ParkingZoneController.java
