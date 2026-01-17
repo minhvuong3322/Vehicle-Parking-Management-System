@@ -55,4 +55,26 @@ public class UserService implements UserDetailsService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+    
+    // Xác thực user (dùng cho login)
+    public User authenticate(String username, String rawPassword) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Tên đăng nhập hoặc mật khẩu không đúng"));
+        
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new RuntimeException("Tên đăng nhập hoặc mật khẩu không đúng");
+        }
+        
+        if (!user.getActive()) {
+            throw new RuntimeException("Tài khoản đã bị vô hiệu hóa");
+        }
+        
+        return user;
+    }
+    
+    // Lấy user theo username
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy user: " + username));
+    }
 }
