@@ -12,11 +12,17 @@ export default function ParkingMap() {
     const loadZones = async () => {
       try {
         const response = await zonesAPI.getAll();
-        const zones = response.data;
+        const zonesData = response.data.data || response.data; // Handle ApiResponse wrapper
+        
+        // Kiểm tra zones có phải là array không
+        if (!Array.isArray(zonesData)) {
+          console.error('Zones is not an array:', zonesData);
+          throw new Error('Invalid zones data');
+        }
 
         // Phân loại zones theo vehicleType
-        const motorbikeZone = zones.find(z => z.vehicleType === 'MOTORBIKE');
-        const carZone = zones.find(z => z.vehicleType === 'CAR');
+        const motorbikeZone = zonesData.find(z => z.vehicleType === 'MOTORBIKE');
+        const carZone = zonesData.find(z => z.vehicleType === 'CAR');
 
         // Map slots cho Zone A (Xe máy)
         if (motorbikeZone && motorbikeZone.slots) {

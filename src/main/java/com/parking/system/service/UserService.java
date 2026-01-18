@@ -42,6 +42,11 @@ public class UserService implements UserDetailsService {
     // Tạo user mới
     @Transactional
     public User createUser(String username, String password, String fullName, User.Role role) {
+        // Kiểm tra username đã tồn tại chưa
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new RuntimeException("Tên đăng nhập đã tồn tại");
+        }
+        
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));

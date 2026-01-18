@@ -5,7 +5,7 @@ import com.parking.system.entity.ParkingZone;
 public class CreateTicketRequest {
     private String licensePlate;
     private ParkingZone.VehicleType vehicleType;
-    private Long slotId;
+    private Long zoneId;  // Thêm zoneId để xác định khu vực
     
     public String getLicensePlate() {
         return licensePlate;
@@ -23,11 +23,11 @@ public class CreateTicketRequest {
         this.vehicleType = vehicleType;
     }
     
-    public Long getSlotId() {
-        return slotId;
+    public Long getZoneId() {
+        return zoneId;
     }
     
-    public void setSlotId(Long slotId) {
-        this.slotId = slotId;
+    public void setZoneId(Long zoneId) {
+        this.zoneId = zoneId;
     }
 }

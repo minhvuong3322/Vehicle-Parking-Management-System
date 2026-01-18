@@ -6,7 +6,7 @@ public class RegisterRequest {
     private String username;
     private String password;
     private String fullName;
-    private User.Role role;
+    private User.Role role = User.Role.EMPLOYEE; // Giá trị mặc định
     
     public String getUsername() {
         return username;

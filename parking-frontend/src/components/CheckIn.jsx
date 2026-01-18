@@ -18,7 +18,8 @@ export default function CheckIn() {
     const fetchAvailableSlot = async () => {
       try {
         const response = await zonesAPI.getAvailableSlots();
-        const availableSlots = response.data.slots || [];
+        const data = response.data.data; // API trả về { success, message, data }
+        const availableSlots = data.slots || [];
         
         // Lọc slots theo loại xe
         const filteredSlots = availableSlots.filter(slot => {
@@ -55,11 +56,11 @@ export default function CheckIn() {
     setIsProcessing(true);
 
     try {
-      // Gọi API tạo ticket
+      // Gọi API tạo ticket với đúng tên field theo backend
       const ticketData = {
-        plateNumber: plateNumber,
+        licensePlate: plateNumber,
         vehicleType: vehicleType,
-        slotNumber: suggestedSlot
+        zoneId: vehicleType === 'MOTORBIKE' ? 1 : 2  // Giả sử zone 1 là xe máy, zone 2 là ô tô
       };
 
       const response = await ticketsAPI.create(ticketData);
@@ -68,7 +69,7 @@ export default function CheckIn() {
       setLastCheckIn({
         plate: plateNumber,
         type: vehicleType.toLowerCase(),
-        slot: suggestedSlot,
+        slot: response.data.data.slot?.slotNumber || suggestedSlot,
         time: new Date().toLocaleTimeString('vi-VN')
       });
 
@@ -79,7 +80,7 @@ export default function CheckIn() {
         carCount: vehicleType === 'CAR' ? prev.carCount + 1 : prev.carCount
       }));
 
-      alert(`Đã cấp vé thành công cho xe ${plateNumber}! Mã vé: ${response.data.ticketCode}`);
+      alert(`Đã cấp vé thành công cho xe ${plateNumber}!\nSlot: ${response.data.data.slot?.slotNumber || suggestedSlot}`);
       
       // Reset form
       setPlateNumber('');

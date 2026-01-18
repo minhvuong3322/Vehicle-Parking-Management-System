@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { User, Lock, Eye, EyeOff, Car, ShieldCheck } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, Car, ShieldCheck, Mail, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    fullName: '',
     username: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -20,28 +24,47 @@ export default function Login() {
     });
     // Xóa lỗi khi người dùng bắt đầu gõ lại
     if (error) setError('');
+    if (success) setSuccess('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess('');
+    
+    // Validate mật khẩu
+    if (formData.password !== formData.confirmPassword) {
+      setError('Mật khẩu và xác nhận mật khẩu không khớp');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      setIsLoading(false);
+      return;
+    }
     
     try {
-      // Gọi API đăng nhập
-      const response = await authAPI.login(formData.username, formData.password);
+      // Gọi API đăng ký
+      const response = await authAPI.register({
+        fullName: formData.fullName,
+        username: formData.username,
+        password: formData.password
+      });
       
-      // Lưu token và thông tin user vào localStorage
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Chuyển hướng vào Dashboard
-        navigate('/dashboard');
-      }
+      // Đăng ký thành công
+      setSuccess('Đăng ký thành công! Đang chuyển hướng về trang đăng nhập...');
+      
+      // Chuyển hướng về trang Login sau 2 giây
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Tên đăng nhập hoặc mật khẩu không đúng.');
+      console.error('Register error:', err);
+      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -66,10 +89,10 @@ export default function Login() {
           {/* Header Section */}
           <div className="bg-white/5 p-8 pb-6 text-center border-b border-white/10">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 mb-4 shadow-lg shadow-blue-500/30">
-              <Car className="w-8 h-8 text-white" />
+              <UserPlus className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-wide">
-              Hệ thống Bãi xe
+              Đăng Ký Tài Khoản
             </h1>
             <p className="text-blue-200 text-sm mt-1 font-medium">
               Smart Parking Management
@@ -78,8 +101,29 @@ export default function Login() {
 
           {/* Form Section */}
           <div className="p-8 pt-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               
+              {/* Full Name Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-100 ml-1">
+                  Họ và tên
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-blue-300 group-focus-within:text-blue-400 transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required
+                    className="block w-full pl-10 pr-3 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-slate-800/70"
+                    placeholder="Nhập họ và tên"
+                  />
+                </div>
+              </div>
+
               {/* Username Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-blue-100 ml-1">
@@ -87,7 +131,7 @@ export default function Login() {
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-blue-300 group-focus-within:text-blue-400 transition-colors" />
+                    <Mail className="h-5 w-5 text-blue-300 group-focus-within:text-blue-400 transition-colors" />
                   </div>
                   <input
                     type="text"
@@ -117,7 +161,7 @@ export default function Login() {
                     onChange={handleChange}
                     required
                     className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-slate-800/70"
-                    placeholder="Nhập mật khẩu"
+                    placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
                   />
                   <button
                     type="button"
@@ -133,11 +177,51 @@ export default function Login() {
                 </div>
               </div>
 
+              {/* Confirm Password Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-100 ml-1">
+                  Xác nhận mật khẩu
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <ShieldCheck className="h-5 w-5 text-blue-300 group-focus-within:text-blue-400 transition-colors" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-slate-800/70"
+                    placeholder="Nhập lại mật khẩu"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
               {/* Error Message */}
               {error && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-200 text-sm flex items-center gap-2 animate-pulse">
                   <ShieldCheck className="w-4 h-4" />
                   {error}
+                </div>
+              )}
+
+              {/* Success Message */}
+              {success && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/50 text-green-200 text-sm flex items-center gap-2 animate-pulse">
+                  <ShieldCheck className="w-4 h-4" />
+                  {success}
                 </div>
               )}
 
@@ -156,26 +240,20 @@ export default function Login() {
                     Đang xử lý...
                   </span>
                 ) : (
-                  "Đăng Nhập Hệ Thống"
+                  "Đăng Ký Tài Khoản"
                 )}
               </button>
 
               {/* Footer Link */}
-              <div className="text-center mt-4 space-y-2">
-                <a href="#" className="text-sm text-blue-300 hover:text-white transition-colors duration-200 flex items-center justify-center gap-1 group">
-                  Quên mật khẩu? 
-                  <span className="underline decoration-transparent group-hover:decoration-white transition-all">
-                    Liên hệ Admin
-                  </span>
-                </a>
+              <div className="text-center mt-4">
                 <button 
                   type="button"
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/login')}
                   className="text-sm text-blue-300 hover:text-white transition-colors duration-200 flex items-center justify-center gap-1 group w-full"
                 >
-                  Chưa có tài khoản? 
+                  Đã có tài khoản? 
                   <span className="underline decoration-transparent group-hover:decoration-white transition-all">
-                    Đăng ký ngay
+                    Đăng nhập ngay
                   </span>
                 </button>
               </div>

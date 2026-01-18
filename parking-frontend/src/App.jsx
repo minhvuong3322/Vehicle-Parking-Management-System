@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
+import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import ParkingMap from './components/ParkingMap';
 import CheckIn from './components/CheckIn';
@@ -43,6 +44,16 @@ function App() {
           element={
             <PublicRoute>
               <Login />
+            </PublicRoute>
+          } 
+        />
+        
+        {/* Route công khai - Register */}
+        <Route 
+          path="/register" 
+          element={
+            <PublicRoute>
+              <Register />
             </PublicRoute>
           } 
         />

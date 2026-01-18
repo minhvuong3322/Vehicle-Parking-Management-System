@@ -31,8 +31,19 @@ public class AuthController {
     
     // Đăng nhập
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
+            // Validate dữ liệu đầu vào
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Tên đăng nhập không được để trống"));
+            }
+            
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Mật khẩu không được để trống"));
+            }
+            
             // Xác thực user
             User user = userService.authenticate(request.getUsername(), request.getPassword());
             
@@ -55,6 +66,7 @@ public class AuthController {
             
             return ResponseEntity.ok(loginResponse);
         } catch (Exception e) {
+            e.printStackTrace(); // Log lỗi để debug
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error("Tên đăng nhập hoặc mật khẩu không đúng"));
         }
@@ -65,11 +77,14 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<User>> register(@RequestBody @Valid RegisterRequest request) {
         try {
+            // Nếu không có role hoặc role == null, mặc định là EMPLOYEE
+            User.Role userRole = (request.getRole() != null) ? request.getRole() : User.Role.EMPLOYEE;
+            
             User newUser = userService.createUser(
                 request.getUsername(), 
                 request.getPassword(), 
                 request.getFullName(), 
-                request.getRole()
+                userRole
             );
             return ResponseEntity.ok(ApiResponse.success("Đăng ký thành công", newUser));
         } catch (Exception e) {

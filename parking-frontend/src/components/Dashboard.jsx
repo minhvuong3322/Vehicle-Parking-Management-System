@@ -40,19 +40,31 @@ export default function Dashboard() {
       try {
         // Lấy thông tin vị trí trống
         const slotsResponse = await zonesAPI.getAvailableSlots();
-        const availableSlots = slotsResponse.data.availableSlots || 0;
+        const slotsData = slotsResponse.data.data || slotsResponse.data;
+        const availableCount = slotsData.total || slotsData.slots?.length || 0;
         
         // Lấy doanh thu ngày
-        const today = new Date().toISOString().split('T')[0];
-        const revenueResponse = await reportsAPI.getDailyRevenue(today);
-        const revenue = revenueResponse.data.revenue || 0;
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const revenueResponse = await reportsAPI.getDailyRevenue(today);
+          const revenueData = revenueResponse.data.data || revenueResponse.data;
+          const revenue = revenueData.revenue || 0;
 
-        setStats({
-          totalSlots: 200,
-          occupiedSlots: 200 - availableSlots,
-          availableSlots: availableSlots,
-          dailyRevenue: `${revenue.toLocaleString('vi-VN')}đ`
-        });
+          setStats({
+            totalSlots: 200,
+            occupiedSlots: 200 - availableCount,
+            availableSlots: availableCount,
+            dailyRevenue: `${revenue.toLocaleString('vi-VN')}đ`
+          });
+        } catch (revenueError) {
+          console.error('Error loading revenue:', revenueError);
+          setStats({
+            totalSlots: 200,
+            occupiedSlots: 200 - availableCount,
+            availableSlots: availableCount,
+            dailyRevenue: '0đ'
+          });
+        }
       } catch (error) {
         console.error('Error loading stats:', error);
         // Sử dụng dữ liệu mẫu nếu API lỗi
@@ -60,7 +72,7 @@ export default function Dashboard() {
           totalSlots: 200,
           occupiedSlots: 145,
           availableSlots: 55,
-          dailyRevenue: '12.500.000đ'
+          dailyRevenue: '0đ'
         });
       }
     };
